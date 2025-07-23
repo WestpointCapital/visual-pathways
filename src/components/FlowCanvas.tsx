@@ -24,6 +24,7 @@ import { DelayNode } from './nodes/DelayNode';
 import { ContextualEdge } from './ContextualEdge';
 import { FlowSidebar } from './FlowSidebar';
 import { FlowToolbar } from './FlowToolbar';
+import { BranchEndIndicators } from './BranchEndIndicators';
 import { initialNodes, initialEdges } from '../data/flowData';
 
 const nodeTypes = {
@@ -196,6 +197,12 @@ export const FlowCanvas = () => {
           onAddNode={addNode}
           onSave={() => console.log('Save flow')}
           onRevisions={() => console.log('View revisions')}
+        />
+        
+        <BranchEndIndicators 
+          nodes={nodes}
+          edges={edges}
+          onAddNode={addNode}
         />
       </div>
 
