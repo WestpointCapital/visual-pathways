@@ -11,7 +11,7 @@ interface AddNodeButtonProps {
 export const AddNodeButton = ({ position, onAddNode }: AddNodeButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleAddNode = (type: 'trigger' | 'action' | 'condition' | 'delay') => {
+  const handleNodeTypeSelect = (type: 'trigger' | 'action' | 'condition' | 'delay') => {
     onAddNode(type, position);
     setIsOpen(false);
   };
@@ -25,28 +25,27 @@ export const AddNodeButton = ({ position, onAddNode }: AddNodeButtonProps) => {
         <DropdownMenuTrigger asChild>
           <Button
             size="sm"
-            variant="outline"
-            className="w-8 h-8 rounded-full p-0 bg-background border-2 border-border hover:border-primary shadow-md"
+            className="w-8 h-8 rounded-full bg-flow-toolbar border-2 border-white shadow-lg hover:shadow-xl transition-all duration-200"
           >
             <Plus className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="center" className="w-40">
-          <DropdownMenuItem onClick={() => handleAddNode('trigger')}>
-            <div className="w-3 h-3 rounded-full bg-flow-trigger mr-2"></div>
-            Trigger
+        <DropdownMenuContent align="center" className="w-48">
+          <DropdownMenuItem onClick={() => handleNodeTypeSelect('trigger')}>
+            <div className="w-3 h-3 bg-flow-trigger rounded-full mr-2"></div>
+            Add Trigger
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAddNode('action')}>
-            <div className="w-3 h-3 rounded-full bg-flow-action mr-2"></div>
-            Action
+          <DropdownMenuItem onClick={() => handleNodeTypeSelect('action')}>
+            <div className="w-3 h-3 bg-flow-action rounded-full mr-2"></div>
+            Add Action
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAddNode('condition')}>
-            <div className="w-3 h-3 rounded-full bg-flow-condition mr-2"></div>
-            Condition
+          <DropdownMenuItem onClick={() => handleNodeTypeSelect('condition')}>
+            <div className="w-3 h-3 bg-flow-condition rounded-full mr-2"></div>
+            Add Condition
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAddNode('delay')}>
-            <div className="w-3 h-3 rounded-full bg-flow-delay mr-2"></div>
-            Delay
+          <DropdownMenuItem onClick={() => handleNodeTypeSelect('delay')}>
+            <div className="w-3 h-3 bg-flow-delay rounded-full mr-2"></div>
+            Add Delay
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

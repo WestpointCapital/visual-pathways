@@ -1,6 +1,7 @@
 import { useCallback, useState, useRef } from 'react';
 import {
   ReactFlow,
+  MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -54,7 +55,7 @@ export const FlowCanvas = () => {
     setSidebarOpen(true);
   }, []);
 
-  const getNodeLabel = useCallback((type: string, data: any) => {
+  const getNodeLabel = (type: string, data: any) => {
     switch (type) {
       case 'trigger':
         if (data.triggerType === 'sms_reply') return 'SMS Reply Received';
@@ -74,12 +75,27 @@ export const FlowCanvas = () => {
         if (data.condition === 'any_reply') return 'Any Reply Received';
         return 'New Condition';
       case 'delay':
-        if (data.delayAmount && data.delayUnit) return `Delay ${data.delayAmount} ${data.delayUnit}`;
+        if (data.delayAmount && data.delayUnit) return `Wait ${data.delayAmount} ${data.delayUnit}`;
         return 'New Delay';
       default:
         return 'New Node';
     }
-  }, []);
+  };
+
+  const getNodeDescription = (type: string, data: any) => {
+    switch (type) {
+      case 'trigger':
+        return 'Starts the automation flow';
+      case 'action':
+        return 'Performs an action';
+      case 'condition':
+        return 'Creates a decision branch';
+      case 'delay':
+        return 'Waits before continuing';
+      default:
+        return 'Configure this node';
+    }
+  };
 
   const addNode = useCallback((type: 'trigger' | 'action' | 'condition' | 'delay', position: { x: number; y: number }) => {
     const newNode: Node = {
@@ -88,22 +104,22 @@ export const FlowCanvas = () => {
       position,
       data: { 
         label: getNodeLabel(type, {}),
-        description: `Configure your ${type}`,
+        description: getNodeDescription(type, {}),
       },
     };
     setNodes((nds) => [...nds, newNode]);
-  }, [setNodes, getNodeLabel]);
+  }, [setNodes]);
 
-  const insertNodeBetween = useCallback((type: 'trigger' | 'action' | 'condition' | 'delay', sourceNodeId: string, targetNodeId: string) => {
-    const sourceNode = nodes.find(n => n.id === sourceNodeId);
-    const targetNode = nodes.find(n => n.id === targetNodeId);
+  const insertNodeBetween = useCallback((sourceId: string, targetId: string, type: 'trigger' | 'action' | 'condition' | 'delay') => {
+    const sourceNode = nodes.find(n => n.id === sourceId);
+    const targetNode = nodes.find(n => n.id === targetId);
     
     if (!sourceNode || !targetNode) return;
 
-    // Calculate position between source and target
+    // Calculate position between nodes
     const position = {
       x: (sourceNode.position.x + targetNode.position.x) / 2,
-      y: sourceNode.position.y + 120,
+      y: sourceNode.position.y + 150
     };
 
     const newNode: Node = {
@@ -112,23 +128,39 @@ export const FlowCanvas = () => {
       position,
       data: { 
         label: getNodeLabel(type, {}),
-        description: `Configure your ${type}`,
+        description: getNodeDescription(type, {}),
       },
     };
 
-    // Remove existing edge between source and target
-    setEdges((eds) => eds.filter(edge => !(edge.source === sourceNodeId && edge.target === targetNodeId)));
-    
-    // Add new node
+    // Add the new node
     setNodes((nds) => [...nds, newNode]);
-    
-    // Add new edges: source -> newNode -> target
-    setEdges((eds) => [
-      ...eds,
-      { id: `e-${sourceNodeId}-${newNode.id}`, source: sourceNodeId, target: newNode.id, type: 'smoothstep' },
-      { id: `e-${newNode.id}-${targetNodeId}`, source: newNode.id, target: targetNodeId, type: 'smoothstep' },
-    ]);
-  }, [nodes, setNodes, setEdges, getNodeLabel]);
+
+    // Update edges: remove old edge and create two new ones
+    setEdges((eds) => {
+      const oldEdge = eds.find(e => e.source === sourceId && e.target === targetId);
+      const edgesWithoutOld = eds.filter(e => !(e.source === sourceId && e.target === targetId));
+      
+      const newEdges = [
+        {
+          id: `e${sourceId}-${newNode.id}`,
+          source: sourceId,
+          target: newNode.id,
+          style: oldEdge?.style || { strokeDasharray: '5,5', strokeWidth: 2 },
+          type: 'smoothstep',
+          sourceHandle: oldEdge?.sourceHandle
+        },
+        {
+          id: `e${newNode.id}-${targetId}`,
+          source: newNode.id,
+          target: targetId,
+          style: { strokeDasharray: '5,5', strokeWidth: 2 },
+          type: 'smoothstep',
+        }
+      ];
+
+      return [...edgesWithoutOld, ...newEdges];
+    });
+  }, [nodes, setNodes, setEdges]);
 
   const updateNodeData = useCallback((nodeId: string, newData: any) => {
     setNodes((nds) =>
@@ -136,66 +168,48 @@ export const FlowCanvas = () => {
         if (node.id === nodeId) {
           const updatedData = { ...node.data, ...newData };
           // Auto-update label and description based on node type and configuration
-          updatedData.label = getNodeLabel(node.type, updatedData);
+          updatedData.label = getNodeLabel(node.type!, updatedData);
+          updatedData.description = getNodeDescription(node.type!, updatedData);
           return { ...node, data: updatedData };
         }
         return node;
       })
     );
-  }, [setNodes, getNodeLabel]);
+  }, [setNodes]);
 
   const deleteNode = useCallback((nodeId: string) => {
-    // Find edges that connect through this node
-    const incomingEdges = edges.filter(edge => edge.target === nodeId);
-    const outgoingEdges = edges.filter(edge => edge.source === nodeId);
+    // Find edges connected to this node
+    const connectedEdges = edges.filter(edge => edge.source === nodeId || edge.target === nodeId);
     
-    // Reconnect nodes that were connected through the deleted node
-    const newEdges = edges.filter(edge => edge.source !== nodeId && edge.target !== nodeId);
+    // If node is between two nodes, reconnect them
+    const incomingEdge = connectedEdges.find(edge => edge.target === nodeId);
+    const outgoingEdge = connectedEdges.find(edge => edge.source === nodeId);
     
-    // Connect incoming sources to outgoing targets
-    incomingEdges.forEach(inEdge => {
-      outgoingEdges.forEach(outEdge => {
-        newEdges.push({
-          id: `e-${inEdge.source}-${outEdge.target}`,
-          source: inEdge.source,
-          target: outEdge.target,
-          type: 'smoothstep'
-        });
-      });
-    });
-
+    if (incomingEdge && outgoingEdge) {
+      const reconnectionEdge = {
+        id: `e${incomingEdge.source}-${outgoingEdge.target}`,
+        source: incomingEdge.source,
+        target: outgoingEdge.target,
+        style: incomingEdge.style,
+        type: 'smoothstep',
+        sourceHandle: incomingEdge.sourceHandle
+      };
+      
+      setEdges((eds) => [
+        ...eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
+        reconnectionEdge
+      ]);
+    } else {
+      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    }
+    
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-    setEdges(newEdges);
     
     if (selectedNode?.id === nodeId) {
       setSelectedNode(null);
       setSidebarOpen(false);
     }
   }, [setNodes, setEdges, selectedNode, edges]);
-
-  // Calculate positions for add-node buttons between edges
-  const getAddNodeButtonPositions = useCallback(() => {
-    const positions: Array<{ x: number; y: number; sourceId: string; targetId: string }> = [];
-    
-    edges.forEach(edge => {
-      const sourceNode = nodes.find(n => n.id === edge.source);
-      const targetNode = nodes.find(n => n.id === edge.target);
-      
-      // Don't show add button after condition nodes (they have multiple outputs)
-      if (sourceNode?.type === 'condition') return;
-      
-      if (sourceNode && targetNode) {
-        positions.push({
-          x: (sourceNode.position.x + targetNode.position.x) / 2 + 75, // Offset for node center
-          y: (sourceNode.position.y + targetNode.position.y) / 2 + 25,
-          sourceId: edge.source,
-          targetId: edge.target,
-        });
-      }
-    });
-    
-    return positions;
-  }, [nodes, edges]);
 
   return (
     <div className="h-screen w-full flex bg-flow-canvas">
@@ -226,15 +240,28 @@ export const FlowCanvas = () => {
             showInteractive={false}
           />
         </ReactFlow>
-        
-        {/* Add Node Buttons between edges */}
-        {getAddNodeButtonPositions().map((position, index) => (
-          <AddNodeButton
-            key={`add-${position.sourceId}-${position.targetId}-${index}`}
-            position={position}
-            onAddNode={(type, pos) => insertNodeBetween(type, position.sourceId, position.targetId)}
-          />
-        ))}
+
+        {/* Add Node Buttons between connected nodes */}
+        {edges.map((edge) => {
+          const sourceNode = nodes.find(n => n.id === edge.source);
+          const targetNode = nodes.find(n => n.id === edge.target);
+          
+          if (!sourceNode || !targetNode) return null;
+          
+          // Don't show add button after condition nodes (they have specific branches)
+          if (sourceNode.type === 'condition') return null;
+          
+          const midX = (sourceNode.position.x + targetNode.position.x) / 2 + 120; // offset for node width
+          const midY = sourceNode.position.y + 75; // position between nodes
+          
+          return (
+            <AddNodeButton
+              key={`add-${edge.id}`}
+              position={{ x: midX, y: midY }}
+              onAddNode={(type, position) => insertNodeBetween(edge.source, edge.target, type)}
+            />
+          );
+        })}
         
         <FlowToolbar 
           onAddNode={addNode}

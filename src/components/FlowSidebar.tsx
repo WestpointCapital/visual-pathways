@@ -27,10 +27,10 @@ export const FlowSidebar = ({
   const [description, setDescription] = useState('');
   const [triggerType, setTriggerType] = useState('');
   const [condition, setCondition] = useState('');
-  const [conditionValue, setConditionValue] = useState('');
   const [actionType, setActionType] = useState('');
   const [delayAmount, setDelayAmount] = useState('');
   const [delayUnit, setDelayUnit] = useState('');
+  const [conditionText, setConditionText] = useState('');
 
   useEffect(() => {
     if (selectedNode) {
@@ -38,10 +38,10 @@ export const FlowSidebar = ({
       setDescription((selectedNode.data as any).description || '');
       setTriggerType((selectedNode.data as any).triggerType || '');
       setCondition((selectedNode.data as any).condition || '');
-      setConditionValue((selectedNode.data as any).conditionValue || '');
       setActionType((selectedNode.data as any).actionType || '');
       setDelayAmount((selectedNode.data as any).delayAmount || '');
       setDelayUnit((selectedNode.data as any).delayUnit || '');
+      setConditionText((selectedNode.data as any).conditionText || '');
     }
   }, [selectedNode]);
 
@@ -53,10 +53,10 @@ export const FlowSidebar = ({
       description,
       triggerType,
       condition,
-      conditionValue,
       actionType,
       delayAmount,
       delayUnit,
+      conditionText,
     });
     onClose();
   };
@@ -180,13 +180,13 @@ export const FlowSidebar = ({
             </div>
             {(condition === 'message_contains' || condition === 'message_equals') && (
               <div>
-                <Label htmlFor="condition-value" className="text-sm text-muted-foreground">
+                <Label htmlFor="condition-text" className="text-sm text-muted-foreground">
                   {condition === 'message_contains' ? 'Keywords' : 'Exact Text'}
                 </Label>
                 <Input
-                  id="condition-value"
-                  value={conditionValue}
-                  onChange={(e) => setConditionValue(e.target.value)}
+                  id="condition-text"
+                  value={conditionText}
+                  onChange={(e) => setConditionText(e.target.value)}
                   placeholder={condition === 'message_contains' ? 'Enter keywords separated by commas' : 'Enter exact text to match'}
                   className="mt-1"
                 />
