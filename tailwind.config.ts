@@ -52,6 +52,20 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				flow: {
+					canvas: 'hsl(var(--flow-canvas))',
+					node: {
+						bg: 'hsl(var(--flow-node-bg))',
+						border: 'hsl(var(--flow-node-border))',
+						shadow: 'hsl(var(--flow-node-shadow))'
+					},
+					connection: 'hsl(var(--flow-connection))',
+					trigger: 'hsl(var(--flow-trigger))',
+					action: 'hsl(var(--flow-action))',
+					condition: 'hsl(var(--flow-condition))',
+					sidebar: 'hsl(var(--flow-sidebar))',
+					toolbar: 'hsl(var(--flow-toolbar))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
