@@ -24,7 +24,6 @@ export const ContextualEdge = (props: EdgeProps) => {
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [showNodeTypeMenu, setShowNodeTypeMenu] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -64,54 +63,14 @@ export const ContextualEdge = (props: EdgeProps) => {
     setShowNodeTypeMenu(false);
   };
 
-  const handlePlusClick = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    setContextMenuPosition({ x: event.clientX, y: event.clientY });
-    setShowNodeTypeMenu(true);
-  };
-
   return (
     <>
-      {/* Main Edge */}
       <BaseEdge 
         path={edgePath} 
         markerEnd={markerEnd} 
-        style={{
-          ...style,
-          strokeWidth: isHovered ? 3 : 2,
-          stroke: isHovered ? 'hsl(var(--primary))' : style.stroke || '#94a3b8',
-        }}
+        style={style}
         onContextMenu={handleContextMenu}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       />
-      
-      {/* Visual Add Node Indicator */}
-      <EdgeLabelRenderer>
-        <div
-          className="absolute pointer-events-all"
-          style={{
-            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <button
-            onClick={handlePlusClick}
-            onContextMenu={handleContextMenu}
-            className={`
-              w-6 h-6 rounded-full border-2 border-background shadow-md 
-              flex items-center justify-center transition-all duration-200
-              ${isHovered 
-                ? 'bg-primary text-primary-foreground border-primary scale-110 shadow-lg' 
-                : 'bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:scale-110'
-              }
-            `}
-          >
-            <Plus className="w-3 h-3" />
-          </button>
-        </div>
-      </EdgeLabelRenderer>
       
       {/* Context Menu */}
       {showContextMenu && (
@@ -121,7 +80,7 @@ export const ContextualEdge = (props: EdgeProps) => {
             onClick={closeMenus}
           />
           <div 
-            className="fixed z-50 bg-background border border-border rounded-lg shadow-lg py-1 min-w-[150px] animate-fade-in"
+            className="fixed z-50 bg-background border border-border rounded-lg shadow-lg py-1 min-w-[150px]"
             style={{ 
               left: contextMenuPosition.x, 
               top: contextMenuPosition.y 
@@ -129,14 +88,14 @@ export const ContextualEdge = (props: EdgeProps) => {
           >
             <button
               onClick={handleUnlink}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 transition-colors"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
             >
               <Unlink className="w-4 h-4" />
               Unlink
             </button>
             <button
               onClick={handleAddNode}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 transition-colors"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Add a node
@@ -153,7 +112,7 @@ export const ContextualEdge = (props: EdgeProps) => {
             onClick={closeMenus}
           />
           <div 
-            className="fixed z-50 bg-background border border-border rounded-lg shadow-lg py-1 min-w-[150px] animate-fade-in"
+            className="fixed z-50 bg-background border border-border rounded-lg shadow-lg py-1 min-w-[150px]"
             style={{ 
               left: contextMenuPosition.x, 
               top: contextMenuPosition.y 
@@ -161,25 +120,25 @@ export const ContextualEdge = (props: EdgeProps) => {
           >
             <button
               onClick={() => handleNodeTypeSelect('trigger')}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
             >
               Trigger Node
             </button>
             <button
               onClick={() => handleNodeTypeSelect('action')}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
             >
               Action Node
             </button>
             <button
               onClick={() => handleNodeTypeSelect('condition')}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
             >
               Condition Node
             </button>
             <button
               onClick={() => handleNodeTypeSelect('delay')}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
             >
               Delay Node
             </button>
