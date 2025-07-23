@@ -1,7 +1,6 @@
 import { useCallback, useState, useRef } from 'react';
 import {
   ReactFlow,
-  MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -22,6 +21,7 @@ import { TriggerNode } from './nodes/TriggerNode';
 import { ActionNode } from './nodes/ActionNode';
 import { ConditionNode } from './nodes/ConditionNode';
 import { DelayNode } from './nodes/DelayNode';
+import { ContextualEdge } from './ContextualEdge';
 import { FlowSidebar } from './FlowSidebar';
 import { FlowToolbar } from './FlowToolbar';
 import { initialNodes, initialEdges } from '../data/flowData';
@@ -33,9 +33,13 @@ const nodeTypes = {
   delay: DelayNode,
 };
 
+const edgeTypes = {
+  contextual: ContextualEdge,
+};
+
 const edgeOptions = {
   style: { strokeDasharray: '5,5', strokeWidth: 2 },
-  type: 'smoothstep',
+  type: 'contextual',
 };
 
 export const FlowCanvas = () => {
@@ -54,13 +58,48 @@ export const FlowCanvas = () => {
     setSidebarOpen(true);
   }, []);
 
+  const generateNodeName = (type: string, data: any) => {
+    switch (type) {
+      case 'trigger':
+        const triggerLabels = {
+          sms_reply: 'SMS Reply Received',
+          delivery_failed: 'Delivery Failed', 
+          new_lead: 'New Lead Added',
+          hubspot_form: 'HubSpot Form Submission'
+        };
+        return triggerLabels[data.triggerType as keyof typeof triggerLabels] || 'New Trigger';
+      case 'action':
+        const actionLabels = {
+          send_sms: 'Send SMS',
+          add_tag: 'Add Tag',
+          update_contact: 'Update Contact',
+          send_webhook: 'Send Webhook'
+        };
+        return actionLabels[data.actionType as keyof typeof actionLabels] || 'New Action';
+      case 'condition':
+        const conditionLabels = {
+          message_contains: 'Message Contains Keywords',
+          message_equals: 'Message Equals Exactly',
+          any_reply: 'Any Reply Received'
+        };
+        return conditionLabels[data.condition as keyof typeof conditionLabels] || 'IF / ELSE';
+      case 'delay':
+        if (data.delayAmount && data.delayUnit) {
+          return `Wait ${data.delayAmount} ${data.delayUnit}`;
+        }
+        return 'Delay';
+      default:
+        return 'New Node';
+    }
+  };
+
   const addNode = useCallback((type: 'trigger' | 'action' | 'condition' | 'delay', position: { x: number; y: number }) => {
     const newNode: Node = {
       id: `${type}-${Date.now()}`,
       type,
       position,
       data: { 
-        label: type === 'trigger' ? 'New Trigger' : type === 'action' ? 'New Action' : 'New Condition',
+        label: generateNodeName(type, {}),
         description: `Configure your ${type}`,
       },
     };
@@ -69,20 +108,58 @@ export const FlowCanvas = () => {
 
   const updateNodeData = useCallback((nodeId: string, newData: any) => {
     setNodes((nds) =>
-      nds.map((node) =>
-        node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
-      )
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          const updatedData = { ...node.data, ...newData };
+          // Auto-update label based on configuration
+          if (newData.triggerType || newData.actionType || newData.condition || newData.delayAmount || newData.delayUnit) {
+            updatedData.label = generateNodeName(node.type!, updatedData);
+          }
+          return { ...node, data: updatedData };
+        }
+        return node;
+      })
     );
   }, [setNodes]);
 
   const deleteNode = useCallback((nodeId: string) => {
+    // Get edges connected to this node
+    const connectedEdges = edges.filter(edge => edge.source === nodeId || edge.target === nodeId);
+    
+    // Auto-reconnect: if node has one input and one output, connect them
+    const incomingEdges = connectedEdges.filter(edge => edge.target === nodeId);
+    const outgoingEdges = connectedEdges.filter(edge => edge.source === nodeId);
+    
+    if (incomingEdges.length === 1 && outgoingEdges.length === 1) {
+      const newEdge: Edge = {
+        id: `auto-${Date.now()}`,
+        source: incomingEdges[0].source,
+        target: outgoingEdges[0].target,
+        type: 'contextual',
+        style: { strokeDasharray: '5,5', strokeWidth: 2 },
+      };
+      setEdges((eds) => [...eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId), newEdge]);
+    } else {
+      setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    }
+    
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    
     if (selectedNode?.id === nodeId) {
       setSelectedNode(null);
       setSidebarOpen(false);
     }
-  }, [setNodes, setEdges, selectedNode]);
+  }, [setNodes, setEdges, selectedNode, edges]);
+
+  const addNodeBetween = useCallback((edgeId: string, position: { x: number; y: number }) => {
+    // Implementation for adding node between existing nodes would go here
+    // For now, just add a new action node at the position
+    addNode('action', position);
+  }, [addNode]);
+
+  const unlinkEdge = useCallback((edgeId: string) => {
+    setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
+  }, [setEdges]);
 
   return (
     <div className="h-screen w-full flex bg-flow-canvas">
@@ -95,6 +172,7 @@ export const FlowCanvas = () => {
           onConnect={onConnect}
           onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           defaultEdgeOptions={edgeOptions}
           fitView
           className="bg-flow-canvas"
@@ -111,18 +189,6 @@ export const FlowCanvas = () => {
             showZoom={false}
             showFitView={false}
             showInteractive={false}
-          />
-          <MiniMap 
-            className="bg-flow-toolbar border border-border rounded-lg"
-            nodeColor={(node) => {
-              switch (node.type) {
-                case 'trigger': return 'hsl(var(--flow-trigger))';
-                case 'action': return 'hsl(var(--flow-action))';
-                case 'condition': return 'hsl(var(--flow-condition))';
-                case 'delay': return 'hsl(var(--flow-delay))';
-                default: return 'hsl(var(--muted))';
-              }
-            }}
           />
         </ReactFlow>
         

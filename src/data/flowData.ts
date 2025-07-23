@@ -56,14 +56,14 @@ export const initialEdges: Edge[] = [
     source: 'trigger-1',
     target: 'action-1',
     style: { strokeDasharray: '5,5', strokeWidth: 2 },
-    type: 'smoothstep',
+    type: 'contextual',
   },
   {
     id: 'e2-3',
     source: 'action-1',
     target: 'condition-1',
     style: { strokeDasharray: '5,5', strokeWidth: 2 },
-    type: 'smoothstep',
+    type: 'contextual',
   },
   {
     id: 'e3-4',
@@ -71,7 +71,7 @@ export const initialEdges: Edge[] = [
     sourceHandle: 'true',
     target: 'action-2',
     style: { strokeDasharray: '5,5', strokeWidth: 2, stroke: '#10b981' },
-    type: 'smoothstep',
+    type: 'contextual',
   },
   {
     id: 'e3-5',
@@ -79,6 +79,6 @@ export const initialEdges: Edge[] = [
     sourceHandle: 'false',
     target: 'action-3',
     style: { strokeDasharray: '5,5', strokeWidth: 2, stroke: '#ef4444' },
-    type: 'smoothstep',
+    type: 'contextual',
   },
 ];

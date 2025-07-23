@@ -30,6 +30,7 @@ export const FlowSidebar = ({
   const [actionType, setActionType] = useState('');
   const [delayAmount, setDelayAmount] = useState('');
   const [delayUnit, setDelayUnit] = useState('');
+  const [keywords, setKeywords] = useState('');
 
   useEffect(() => {
     if (selectedNode) {
@@ -40,6 +41,7 @@ export const FlowSidebar = ({
       setActionType((selectedNode.data as any).actionType || '');
       setDelayAmount((selectedNode.data as any).delayAmount || '');
       setDelayUnit((selectedNode.data as any).delayUnit || '');
+      setKeywords((selectedNode.data as any).keywords || '');
     }
   }, [selectedNode]);
 
@@ -54,6 +56,7 @@ export const FlowSidebar = ({
       actionType,
       delayAmount,
       delayUnit,
+      keywords,
     });
     onClose();
   };
@@ -175,6 +178,20 @@ export const FlowSidebar = ({
                 </SelectContent>
               </Select>
             </div>
+            {(condition === 'message_contains' || condition === 'message_equals') && (
+              <div>
+                <Label htmlFor="keywords" className="text-sm text-muted-foreground">
+                  {condition === 'message_contains' ? 'Keywords' : 'Exact Text'}
+                </Label>
+                <Input
+                  id="keywords"
+                  value={keywords}
+                  onChange={(e) => setKeywords(e.target.value)}
+                  placeholder={condition === 'message_contains' ? 'Enter keywords (comma separated)' : 'Enter exact text'}
+                  className="mt-1"
+                />
+              </div>
+            )}
           </div>
         )}
 
