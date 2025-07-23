@@ -24,7 +24,6 @@ import { DelayNode } from './nodes/DelayNode';
 import { ContextualEdge } from './ContextualEdge';
 import { FlowSidebar } from './FlowSidebar';
 import { FlowToolbar } from './FlowToolbar';
-import { BranchEndIndicators } from './BranchEndIndicators';
 import { initialNodes, initialEdges } from '../data/flowData';
 
 const nodeTypes = {
@@ -190,11 +189,6 @@ export const FlowCanvas = () => {
             showZoom={false}
             showFitView={false}
             showInteractive={false}
-          />
-          <BranchEndIndicators 
-            nodes={nodes}
-            edges={edges}
-            onAddNode={addNode}
           />
         </ReactFlow>
         
