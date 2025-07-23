@@ -34,9 +34,6 @@ const nodeTypes = {
   delay: DelayNode,
 };
 
-const edgeTypes = {
-  contextual: ContextualEdge,
-};
 
 const edgeOptions = {
   style: { strokeDasharray: '5,5', strokeWidth: 2 },
@@ -152,15 +149,64 @@ export const FlowCanvas = () => {
     }
   }, [setNodes, setEdges, selectedNode, edges]);
 
-  const addNodeBetween = useCallback((edgeId: string, position: { x: number; y: number }) => {
-    // Implementation for adding node between existing nodes would go here
-    // For now, just add a new action node at the position
-    addNode('action', position);
-  }, [addNode]);
+  const addNodeBetween = useCallback((edgeId: string, position: { x: number; y: number }, nodeType: 'trigger' | 'action' | 'condition' | 'delay' = 'action') => {
+    const edge = edges.find(e => e.id === edgeId);
+    if (!edge) return;
+
+    // Create new node
+    const newNode: Node = {
+      id: `${nodeType}-${Date.now()}`,
+      type: nodeType,
+      position,
+      data: { 
+        label: generateNodeName(nodeType, {}),
+        description: `Configure your ${nodeType}`,
+      },
+    };
+
+    // Add the new node
+    setNodes((nds) => [...nds, newNode]);
+
+    // Remove the old edge and create two new edges
+    setEdges((eds) => {
+      const newEdges = eds.filter(e => e.id !== edgeId);
+      
+      // Add edge from source to new node
+      newEdges.push({
+        id: `${edge.source}-${newNode.id}`,
+        source: edge.source,
+        target: newNode.id,
+        type: 'contextual',
+        style: { strokeDasharray: '5,5', strokeWidth: 2 },
+      });
+
+      // Add edge from new node to target
+      newEdges.push({
+        id: `${newNode.id}-${edge.target}`,
+        source: newNode.id,
+        target: edge.target,
+        type: 'contextual',
+        style: { strokeDasharray: '5,5', strokeWidth: 2 },
+      });
+
+      return newEdges;
+    });
+  }, [edges, setNodes, setEdges]);
 
   const unlinkEdge = useCallback((edgeId: string) => {
     setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
   }, [setEdges]);
+
+  // Create edge types with callbacks
+  const edgeTypesWithCallbacks = {
+    contextual: (props: any) => (
+      <ContextualEdge 
+        {...props} 
+        onAddNodeBetween={addNodeBetween}
+        onUnlinkEdge={unlinkEdge}
+      />
+    ),
+  };
 
   return (
     <div className="h-screen w-full flex bg-flow-canvas">
@@ -173,7 +219,7 @@ export const FlowCanvas = () => {
           onConnect={onConnect}
           onNodeClick={onNodeClick}
           nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
+          edgeTypes={edgeTypesWithCallbacks}
           defaultEdgeOptions={edgeOptions}
           fitView
           className="bg-flow-canvas"
