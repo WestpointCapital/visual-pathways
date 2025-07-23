@@ -63,6 +63,7 @@ export default {
 					trigger: 'hsl(var(--flow-trigger))',
 					action: 'hsl(var(--flow-action))',
 					condition: 'hsl(var(--flow-condition))',
+					delay: 'hsl(var(--flow-delay))',
 					sidebar: 'hsl(var(--flow-sidebar))',
 					toolbar: 'hsl(var(--flow-toolbar))'
 				},

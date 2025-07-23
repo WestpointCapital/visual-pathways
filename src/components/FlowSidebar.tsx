@@ -27,6 +27,9 @@ export const FlowSidebar = ({
   const [description, setDescription] = useState('');
   const [triggerType, setTriggerType] = useState('');
   const [condition, setCondition] = useState('');
+  const [actionType, setActionType] = useState('');
+  const [delayAmount, setDelayAmount] = useState('');
+  const [delayUnit, setDelayUnit] = useState('');
 
   useEffect(() => {
     if (selectedNode) {
@@ -34,6 +37,9 @@ export const FlowSidebar = ({
       setDescription((selectedNode.data as any).description || '');
       setTriggerType((selectedNode.data as any).triggerType || '');
       setCondition((selectedNode.data as any).condition || '');
+      setActionType((selectedNode.data as any).actionType || '');
+      setDelayAmount((selectedNode.data as any).delayAmount || '');
+      setDelayUnit((selectedNode.data as any).delayUnit || '');
     }
   }, [selectedNode]);
 
@@ -45,6 +51,9 @@ export const FlowSidebar = ({
       description,
       triggerType,
       condition,
+      actionType,
+      delayAmount,
+      delayUnit,
     });
     onClose();
   };
@@ -116,10 +125,10 @@ export const FlowSidebar = ({
                   <SelectValue placeholder="Select trigger type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="order_placed">Order Placed</SelectItem>
-                  <SelectItem value="lead_replies">Lead Replies with Keywords</SelectItem>
-                  <SelectItem value="time_based">Time Based</SelectItem>
-                  <SelectItem value="webhook">Webhook</SelectItem>
+                  <SelectItem value="sms_reply">SMS Reply Received</SelectItem>
+                  <SelectItem value="delivery_failed">Delivery Failed</SelectItem>
+                  <SelectItem value="new_lead">New Lead Added</SelectItem>
+                  <SelectItem value="hubspot_form">HubSpot Form Submission</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -131,17 +140,17 @@ export const FlowSidebar = ({
             <Label className="text-sm font-medium">Action Configuration</Label>
             <div>
               <Label htmlFor="action-type" className="text-sm text-muted-foreground">
-                Action Type
+                Action
               </Label>
-              <Select>
+              <Select value={actionType} onValueChange={setActionType}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select action type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="send_sms">Send SMS</SelectItem>
-                  <SelectItem value="send_email">Send Email</SelectItem>
-                  <SelectItem value="create_task">Create Task</SelectItem>
+                  <SelectItem value="add_tag">Add Tag</SelectItem>
                   <SelectItem value="update_contact">Update Contact</SelectItem>
+                  <SelectItem value="send_webhook">Send Webhook</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -160,10 +169,44 @@ export const FlowSidebar = ({
                   <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="24_hours_before">24 hours before delivery</SelectItem>
-                  <SelectItem value="keywords_match">Keywords match</SelectItem>
-                  <SelectItem value="time_of_day">Time of day</SelectItem>
-                  <SelectItem value="custom">Custom condition</SelectItem>
+                  <SelectItem value="message_contains">Message contains keywords</SelectItem>
+                  <SelectItem value="message_equals">Message equals exactly</SelectItem>
+                  <SelectItem value="any_reply">Any reply received</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        {selectedNode.type === 'delay' && (
+          <div className="space-y-4">
+            <Label className="text-sm font-medium">Delay Configuration</Label>
+            <div>
+              <Label htmlFor="delay-amount" className="text-sm text-muted-foreground">
+                Delay Amount
+              </Label>
+              <Input
+                id="delay-amount"
+                type="number"
+                value={delayAmount}
+                onChange={(e) => setDelayAmount(e.target.value)}
+                placeholder="Enter amount"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="delay-unit" className="text-sm text-muted-foreground">
+                Delay Unit
+              </Label>
+              <Select value={delayUnit} onValueChange={setDelayUnit}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select time unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="seconds">Seconds</SelectItem>
+                  <SelectItem value="minutes">Minutes</SelectItem>
+                  <SelectItem value="hours">Hours</SelectItem>
+                  <SelectItem value="days">Days</SelectItem>
                 </SelectContent>
               </Select>
             </div>

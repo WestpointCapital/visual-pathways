@@ -9,7 +9,7 @@ import {
 } from './ui/dropdown-menu';
 
 interface FlowToolbarProps {
-  onAddNode: (type: 'trigger' | 'action' | 'condition', position: { x: number; y: number }) => void;
+  onAddNode: (type: 'trigger' | 'action' | 'condition' | 'delay', position: { x: number; y: number }) => void;
   onSave: () => void;
   onRevisions: () => void;
 }
@@ -17,7 +17,7 @@ interface FlowToolbarProps {
 export const FlowToolbar = ({ onAddNode, onSave, onRevisions }: FlowToolbarProps) => {
   const [zoom, setZoom] = useState(100);
 
-  const handleAddNode = (type: 'trigger' | 'action' | 'condition') => {
+  const handleAddNode = (type: 'trigger' | 'action' | 'condition' | 'delay') => {
     // Add node to center of viewport
     const position = { 
       x: Math.random() * 400 + 200, 
@@ -59,6 +59,10 @@ export const FlowToolbar = ({ onAddNode, onSave, onRevisions }: FlowToolbarProps
             <DropdownMenuItem onClick={() => handleAddNode('condition')}>
               <div className="w-3 h-3 bg-flow-condition rounded-full mr-2"></div>
               Add Condition
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAddNode('delay')}>
+              <div className="w-3 h-3 bg-flow-delay rounded-full mr-2"></div>
+              Add Delay
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

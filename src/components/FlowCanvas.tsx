@@ -21,6 +21,7 @@ import '@xyflow/react/dist/style.css';
 import { TriggerNode } from './nodes/TriggerNode';
 import { ActionNode } from './nodes/ActionNode';
 import { ConditionNode } from './nodes/ConditionNode';
+import { DelayNode } from './nodes/DelayNode';
 import { FlowSidebar } from './FlowSidebar';
 import { FlowToolbar } from './FlowToolbar';
 import { initialNodes, initialEdges } from '../data/flowData';
@@ -29,6 +30,7 @@ const nodeTypes = {
   trigger: TriggerNode,
   action: ActionNode,
   condition: ConditionNode,
+  delay: DelayNode,
 };
 
 const edgeOptions = {
@@ -52,7 +54,7 @@ export const FlowCanvas = () => {
     setSidebarOpen(true);
   }, []);
 
-  const addNode = useCallback((type: 'trigger' | 'action' | 'condition', position: { x: number; y: number }) => {
+  const addNode = useCallback((type: 'trigger' | 'action' | 'condition' | 'delay', position: { x: number; y: number }) => {
     const newNode: Node = {
       id: `${type}-${Date.now()}`,
       type,
@@ -117,6 +119,7 @@ export const FlowCanvas = () => {
                 case 'trigger': return 'hsl(var(--flow-trigger))';
                 case 'action': return 'hsl(var(--flow-action))';
                 case 'condition': return 'hsl(var(--flow-condition))';
+                case 'delay': return 'hsl(var(--flow-delay))';
                 default: return 'hsl(var(--muted))';
               }
             }}
