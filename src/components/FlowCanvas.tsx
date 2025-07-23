@@ -191,18 +191,17 @@ export const FlowCanvas = () => {
             showFitView={false}
             showInteractive={false}
           />
+          <BranchEndIndicators 
+            nodes={nodes}
+            edges={edges}
+            onAddNode={addNode}
+          />
         </ReactFlow>
         
         <FlowToolbar 
           onAddNode={addNode}
           onSave={() => console.log('Save flow')}
           onRevisions={() => console.log('View revisions')}
-        />
-        
-        <BranchEndIndicators 
-          nodes={nodes}
-          edges={edges}
-          onAddNode={addNode}
         />
       </div>
 
