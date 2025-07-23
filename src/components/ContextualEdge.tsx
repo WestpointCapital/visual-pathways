@@ -9,10 +9,7 @@ import {
 import { Plus, Unlink } from 'lucide-react';
 import { Button } from './ui/button';
 
-export const ContextualEdge = (props: EdgeProps & { 
-  onAddNodeBetween?: (edgeId: string, position: { x: number; y: number }, nodeType?: 'trigger' | 'action' | 'condition' | 'delay') => void;
-  onUnlinkEdge?: (edgeId: string) => void;
-}) => {
+export const ContextualEdge = (props: EdgeProps) => {
   const {
     id,
     sourceX,
@@ -23,8 +20,6 @@ export const ContextualEdge = (props: EdgeProps & {
     targetPosition,
     style = {},
     markerEnd,
-    onAddNodeBetween,
-    onUnlinkEdge,
   } = props;
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
@@ -48,7 +43,8 @@ export const ContextualEdge = (props: EdgeProps & {
   };
 
   const handleUnlink = () => {
-    onUnlinkEdge?.(id);
+    // For now, just log - will be handled by parent component
+    console.log('Unlink edge:', id);
     setShowContextMenu(false);
   };
 
@@ -58,12 +54,8 @@ export const ContextualEdge = (props: EdgeProps & {
   };
 
   const handleNodeTypeSelect = (nodeType: 'trigger' | 'action' | 'condition' | 'delay') => {
-    // Calculate position between source and target
-    const position = {
-      x: (sourceX + targetX) / 2,
-      y: (sourceY + targetY) / 2
-    };
-    onAddNodeBetween?.(id, position, nodeType);
+    // For now, just log - will be handled by parent component
+    console.log('Add node between:', nodeType, id);
     setShowNodeTypeMenu(false);
   };
 
