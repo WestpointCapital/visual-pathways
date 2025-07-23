@@ -199,7 +199,6 @@ export const FlowCanvas = () => {
         </ReactFlow>
         
         <FlowToolbar 
-          onAddNode={addNode}
           onSave={() => console.log('Save flow')}
           onRevisions={() => console.log('View revisions')}
         />
